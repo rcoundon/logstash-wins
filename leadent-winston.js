@@ -1,5 +1,6 @@
 const Transport = require('winston-transport');
 
+const {format } = require('winston');
 const util = require('util');
 const logUtils = require('./lib/logutils');
 const rp = require('request-promise-native');
@@ -16,6 +17,7 @@ module.exports = class LeadentLogstash extends Transport {
       this.logstashHost = opts.host;
       this.logstashPort = opts.port;
       this.logstashUrl = "http://";
+      this.label = opts.label;
       if(this.logstashPort){
           this.logstashUrl += `${this.logstashHost}:${this.logstashPort}`;
       }
@@ -40,18 +42,33 @@ module.exports = class LeadentLogstash extends Transport {
     }
     
     log(info, callback) {
-      setImmediate(async () => {
-        this.rpOptions.body = info.message;
-        try{
-            let result = await rp.post(this.rpOptions);
-            console.log(result);
-        }
-        catch(err){
-            console.error(err);
-        }
-        console.log(`Log: ${JSON.stringify(info)}`);
-        this.emit('logged', info);
-      });
+        setImmediate(async () => {
+            let message;
+            if(typeof info.message === "string"){
+                message = {
+                    message: info.message
+                }
+            }
+            else{
+                message = info.message;
+            }
+            let logObj = {
+
+                message: message,
+                level: info.level,
+                label: info.label
+            }
+            this.rpOptions.body = logObj;
+            try{
+                let result = await rp.put(this.rpOptions);
+                console.log(result);
+            }
+            catch(err){
+                console.error(err);
+            }
+            console.log(`Log: ${JSON.stringify(info)}`);
+            this.emit('logged', info);
+        });
       
       // Perform the writing to the remote service
       callback();
