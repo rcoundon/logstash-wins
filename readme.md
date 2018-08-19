@@ -3,6 +3,10 @@ Inspired by the winston-logstash module but as that isn't actively maintained an
 
 ## A Transport for Winston that allows for the sending of data to the Logstash TCP input plugin
 
+Install
+
+    npm i logstash-tcp-wins
+
 Initialise the log transport like so:
 
     const logger = createLogger({
