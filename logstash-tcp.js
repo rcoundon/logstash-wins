@@ -8,6 +8,7 @@ const util = require('util');
 const logUtils = require('./lib/logutils');
 const rp = require('request-promise-native');
 const defaultTransform = require('./transform/transform');
+const supportsReady = logUtils.nodeSocketSupportsReady();
 //
 // Inherit from `winston-transport` so you can take advantage
 // of the base functionality and `.exceptions.handle()`.
@@ -28,7 +29,6 @@ module.exports = class LeadentLogstash extends Transport {
         this._silent = false;
         this._currentRetry = 0;
         this._retrying = false;
-        this._ready = false;
         this._socket = new net.Socket({
             writable: true,
             readable: false
@@ -48,7 +48,7 @@ module.exports = class LeadentLogstash extends Transport {
         }
 
         this._logQueue.push(info);
-        if(this._connected && this._ready){
+        if(this._connected){
             console.log('About to process log queue');
             this.processLogQueue();
         }
@@ -78,19 +78,22 @@ module.exports = class LeadentLogstash extends Transport {
             socket.setKeepAlive(true, 30000);
         });
 
-        this._socket.on("ready", () => {
-            console.log(`socket ready`);
+        this._socket.on("ready", (conn) => {
+            console.log(`socket ready`);      
+        })
+        
+        this._socket.on("connect", () => {
+            console.log(`socket connects`);
             this._connected = true;
             this._retrying = false;
             this._currentRetry = 0;
+            clearInterval(this._interval);
+            this._interval = null;
             // wait 60s for socket to be ready
-            if(!this._ready){
-                setTimeout(()=> {
-                    console.log(`Start processing again`);
-                    this._ready = true;
-                    this.processLogQueue();
-                }, 60000);
-            }
+            setTimeout(()=> {
+                console.log(`Start processing again`);
+                this.processLogQueue();
+            }, 60000);
         });
 
         this._socket.on("error", (error) => {
@@ -112,7 +115,6 @@ module.exports = class LeadentLogstash extends Transport {
         this._socket.on("close", (msg) => {
             console.log(`Socket closed ${msg}`);
             this._connected = false;
-            this._ready = false;
             if(!this._retrying){
                 this.retryConnection();
             }   
@@ -122,19 +124,13 @@ module.exports = class LeadentLogstash extends Transport {
     retryConnection() {
         this._retrying = true;
         if(!this._interval){
-            this._interval = setInterval(() => {
-                if(this._ready){
-                    clearInterval(this._interval);
-                    this._interval = null;
-                }
-                else{
-                    console.log(`Retry number ${this._currentRetry}`);
-                    if(!this._socket.connecting){
-                        this._currentRetry++;
-                        console.log(`initiating a connect on socket`);
-                        this._socket.connect(this._port, this._host);
-                    }
-                }
+            this._interval = setInterval(() => {   
+                console.log(`Retry number ${this._currentRetry}`);
+                if(!this._socket.connecting){
+                    this._currentRetry++;
+                    console.log(`initiating a connect on socket`);
+                    this._socket.connect(this._port, this._host);
+                }            
             }, this._retryInterval);
         }
         if(this._currentRetry === this._maxRetries){
