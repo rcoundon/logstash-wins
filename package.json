@@ -1,6 +1,6 @@
 {
   "name": "logstash-tcp-wins",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A TCP Logstash tranport for Winston",
   "main": "./index.js",
   "scripts": {
