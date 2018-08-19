@@ -2,13 +2,8 @@ let net = require('net');
 let socket = new net.Socket();
 
 const Transport = require('winston-transport');
-
 const {format} = require('winston');
-const util = require('util');
-const logUtils = require('./lib/logutils');
-const rp = require('request-promise-native');
 const defaultTransform = require('./transform/transform');
-const supportsReady = logUtils.nodeSocketSupportsReady();
 //
 // Inherit from `winston-transport` so you can take advantage
 // of the base functionality and `.exceptions.handle()`.
