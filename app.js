@@ -16,7 +16,7 @@ const logger = createLogger({
             port: 5000,
             json: true,
             host: "localhost",
-            retryInterval: 1000,
+            retryInterval: 2000,
             maxRetries: 1000,
             label: "test",
         })
@@ -24,8 +24,15 @@ const logger = createLogger({
     exitOnError: false
 })
 
-logger.debug({stuff:"Hi!"});
+let x = 0;
+let moment = require('moment');
+let now = moment();
 
-logger.error({type: "error happened"})
+setInterval(() => {
+    logger.debug({
+        stuff:"Hi!",
+        id: x++,
+        now: now.format('HH:mm:ss')
 
-logger.debug("just a string")
+    });
+},10000)

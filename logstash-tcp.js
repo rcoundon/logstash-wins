@@ -24,38 +24,73 @@ module.exports = class LeadentLogstash extends Transport {
         this._retryInterval = opts.retryInterval || 100;
         this._logQueue = [];
         this._transform = defaultTransform;
+        this._connected = false;
+        this._silent = false;
+        this._currentRetry = 0;
+        this._retrying = false;
+        this._ready = false;
+        this._socket = new net.Socket({
+            writable: true,
+            readable: false
+        });
+        this._socket.setDefaultEncoding("utf8");
         this.connect();
         console.log("Constructed");
     }
     
     log(info, callback) {
-        // Add the log entry to the queue and return
-        this._logQueue.push(info);
-        callback();
         setImmediate( () => {
-            
-            this.processLogQueue();
+            this.emit('logged', info);   
         });
+
+        if(this._silent){
+            callback();    
+        }
+
+        this._logQueue.push(info);
+        if(this._connected && this._ready){
+            console.log('About to process log queue');
+            this.processLogQueue();
+        }
+        callback(); 
     }
+
+    sendToLogstash(log){
+        let logEntry = defaultTransform(log, null);
+        logEntry = logEntry.transform({
+            level: log.level,
+            message: log.message
+        })
+        console.log(`Log: ${JSON.stringify(logEntry)}`);
+        this._socket.write(JSON.stringify(logEntry) + "\n");
+        this.emit('logged', logEntry);
+    }
+
     processLogQueue() {
         while(this._logQueue.length > 0){
             let log = this._logQueue.shift()
-            
-            let logEntry = defaultTransform(log, null);
-            logEntry = logEntry.transform({
-                level: log.level,
-                message: log.message
-            })
-            console.log(`Log: ${JSON.stringify(logEntry)}`);
-            this._socket.write(JSON.stringify(logEntry) + "\n");
-            this.emit('logged', logEntry);
+            this.sendToLogstash(log);
         }
     }
     
-    connect(){
+    connect() {
+        this._socket.connect(this._port, this._host, function(){
+            socket.setKeepAlive(true, 30000);
+        });
 
-        this._socket = net.createConnection(this._port, this._host, function(){
-            socket.setKeepAlive(true, 60 * 1000);
+        this._socket.on("ready", () => {
+            console.log(`socket ready`);
+            this._connected = true;
+            this._retrying = false;
+            this._currentRetry = 0;
+            // wait 60s for socket to be ready
+            if(!this._ready){
+                setTimeout(()=> {
+                    console.log(`Start processing again`);
+                    this._ready = true;
+                    this.processLogQueue();
+                }, 60000);
+            }
         });
 
         this._socket.on("error", (error) => {
@@ -70,12 +105,42 @@ module.exports = class LeadentLogstash extends Transport {
             console.log(`Socket ended ${msg}`);
         })
         
+        this._socket.on("timeout", (msg) => {
+            console.log(`Socket timeout ${msg}`);
+        })
+
         this._socket.on("close", (msg) => {
             console.log(`Socket closed ${msg}`);
+            this._connected = false;
+            this._ready = false;
+            if(!this._retrying){
+                this.retryConnection();
+            }   
         })
     }
-   
+
+    retryConnection() {
+        this._retrying = true;
+        if(!this._interval){
+            this._interval = setInterval(() => {
+                if(this._ready){
+                    clearInterval(this._interval);
+                    this._interval = null;
+                }
+                else{
+                    console.log(`Retry number ${this._currentRetry}`);
+                    if(!this._socket.connecting){
+                        this._currentRetry++;
+                        console.log(`initiating a connect on socket`);
+                        this._socket.connect(this._port, this._host);
+                    }
+                }
+            }, this._retryInterval);
+        }
+        if(this._currentRetry === this._maxRetries){
+            clearInterval(this._interval);
+            this._silent = true;
+            emit('error', new Error('Max retries reached, going silent, further logs will be stored'));
+        }
+    }
 };
-
-
-
