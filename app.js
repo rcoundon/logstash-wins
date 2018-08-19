@@ -1,7 +1,7 @@
 const {createLogger, transports, format } = require('winston');
 const { combine, timestamp, label, prettyPrint, json } = format;
 
-const leadentLogstash = require('./logstash-tcp.js');
+const logstashTcpWins = require('./index.js');
 
 const logger = createLogger({
     format: combine (
@@ -11,7 +11,7 @@ const logger = createLogger({
          json()
     ),
     transports: [
-        new leadentLogstash({
+        new logstashTcpWins({
             level: "debug",
             port: 5000,
             json: true,
@@ -25,14 +25,10 @@ const logger = createLogger({
 })
 
 let x = 0;
-let moment = require('moment');
-let now = moment();
 
 setInterval(() => {
     logger.debug({
         stuff:"Hi!",
-        id: x++,
-        now: now.format('HH:mm:ss')
-
+        id: x++
     });
-},10000)
+},100)

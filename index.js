@@ -13,7 +13,7 @@ const supportsReady = logUtils.nodeSocketSupportsReady();
 // Inherit from `winston-transport` so you can take advantage
 // of the base functionality and `.exceptions.handle()`.
 //
-module.exports = class LeadentLogstash extends Transport {
+module.exports = class LogstashTCP extends Transport {
 
     constructor(opts) {
         super(opts);
