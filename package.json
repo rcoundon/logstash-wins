@@ -1,6 +1,6 @@
 {
   "name": "logstash-tcp-wins",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "A TCP Logstash tranport for Winston",
   "main": "./index.js",
   "scripts": {
@@ -18,7 +18,7 @@
   "devDependencies": {},
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Leadent/logstash-wins.git"
+    "url": "git+https://github.com/rcoundon/logstash-wins.git"
   },
   "keywords": [
     "Logstash",
