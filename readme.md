@@ -30,6 +30,23 @@ Initialise the log transport like so:
         exitOnError: false
     })
 
+Set up your logstash pipeline like this:
+
+    input {
+        tcp {
+            codec => json
+            port => 5000
+        }
+    }
+
+
+    output {
+        stdout { codec => rubydebug } 
+        elasticsearch {
+            hosts => "elasticsearch:9200"
+        }
+    }
+
 ### Still to-do
 At the moment, the recovery from a Logstash outage relies on 60s passing after the socket has reported it's connected which is pretty poor.  Working on finding a way to be able to determine and rely on the socket being properly writeable to Logstash without resorting to time period.  If you've got a way, please do create a PR.
 
