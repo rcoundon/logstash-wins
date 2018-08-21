@@ -47,6 +47,8 @@ Set up your logstash pipeline like this:
         }
     }
 
+See the app.js file in Github for requires.
+
 ### Still to-do
 At the moment, the recovery from a Logstash outage relies on 60s passing after the socket has reported it's connected which is pretty poor.  Working on finding a way to be able to determine and rely on the socket being properly writeable to Logstash without resorting to time period.  If you've got a way, please do create a PR.
 
