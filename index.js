@@ -30,7 +30,6 @@ module.exports = class LogstashTCP extends Transport {
         });
         this._socket.setDefaultEncoding("utf8");
         this.connect();
-        console.log("Constructed");
     }
     
     log(info, callback) {
@@ -44,7 +43,6 @@ module.exports = class LogstashTCP extends Transport {
 
         this._logQueue.push(info);
         if(this._connected){
-            console.log('About to process log queue');
             this.processLogQueue();
         }
         callback(); 
@@ -57,7 +55,6 @@ module.exports = class LogstashTCP extends Transport {
             message: log.message,
             label: this._label
         })
-        console.log(`Log: ${JSON.stringify(logEntry)}`);
         this._socket.write(JSON.stringify(logEntry) + "\n");
         this.emit('logged', logEntry);
     }
@@ -75,11 +72,9 @@ module.exports = class LogstashTCP extends Transport {
         });
 
         this._socket.on("ready", (conn) => {
-            console.log(`socket ready`);      
         })
         
         this._socket.on("connect", () => {
-            console.log(`socket connects`);
             this._connected = true;
             this._retrying = false;
             this._currentRetry = 0;
@@ -87,7 +82,6 @@ module.exports = class LogstashTCP extends Transport {
             this._interval = null;
             // wait 60s for socket to be ready
             setTimeout(()=> {
-                console.log(`Start processing again`);
                 this.processLogQueue();
             }, 60000);
         });
@@ -108,8 +102,7 @@ module.exports = class LogstashTCP extends Transport {
             console.log(`Socket timeout ${msg}`);
         })
 
-        this._socket.on("close", (msg) => {
-            console.log(`Socket closed ${msg}`);
+        this._socket.on("close", (msg) => {            
             this._connected = false;
             if(!this._retrying){
                 this.retryConnection();
