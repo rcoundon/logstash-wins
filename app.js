@@ -18,7 +18,7 @@ const logger = createLogger({
             host: "localhost",
             retryInterval: 2000,
             maxRetries: 1000,
-            label: "test",
+            label: "MyTestLabel",
         })
     ],
     exitOnError: false

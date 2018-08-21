@@ -54,7 +54,8 @@ module.exports = class LogstashTCP extends Transport {
         let logEntry = defaultTransform(log, null);
         logEntry = logEntry.transform({
             level: log.level,
-            message: log.message
+            message: log.message,
+            label: this._label
         })
         console.log(`Log: ${JSON.stringify(logEntry)}`);
         this._socket.write(JSON.stringify(logEntry) + "\n");
