@@ -87,19 +87,15 @@ module.exports = class LogstashTCP extends Transport {
         });
 
         this._socket.on("error", (error) => {
-            console.error(`Error emitted: ${error}`);
         })
         
         this._socket.on("drain", (msg) => {
-            console.log(`Socket drained ${msg}`);
         })
         
         this._socket.on("end", (msg) => {
-            console.log(`Socket ended ${msg}`);
         })
         
         this._socket.on("timeout", (msg) => {
-            console.log(`Socket timeout ${msg}`);
         })
 
         this._socket.on("close", (msg) => {            
@@ -114,10 +110,8 @@ module.exports = class LogstashTCP extends Transport {
         this._retrying = true;
         if(!this._interval){
             this._interval = setInterval(() => {   
-                console.log(`Retry number ${this._currentRetry}`);
                 if(!this._socket.connecting){
                     this._currentRetry++;
-                    console.log(`initiating a connect on socket`);
                     this._socket.connect(this._port, this._host);
                 }            
             }, this._retryInterval);
