@@ -1,6 +1,6 @@
 {
   "name": "logstash-tcp-wins",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "A TCP Logstash tranport for Winston",
   "main": "./index.js",
   "scripts": {
@@ -9,7 +9,7 @@
   "author": "Ross Coundon",
   "license": "ISC",
   "dependencies": {
-    "winston": "^3.0.0",
+    "winston": "^3.1.0",
     "winston-transport": "^4.2.0"
   },
   "directories": {
