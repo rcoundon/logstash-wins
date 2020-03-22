@@ -1,5 +1,5 @@
-let net = require('net');
-let socket = new net.Socket();
+const net = require('net');
+const socket = new net.Socket();
 
 const Transport = require('winston-transport');
 const {format} = require('winston');
@@ -87,6 +87,7 @@ module.exports = class LogstashTCP extends Transport {
         });
 
         this._socket.on("error", (error) => {
+            this.emit('error', error);
         })
         
         this._socket.on("drain", (msg) => {
@@ -119,7 +120,7 @@ module.exports = class LogstashTCP extends Transport {
         if(this._currentRetry === this._maxRetries){
             clearInterval(this._interval);
             this._silent = true;
-            emit('error', new Error('Max retries reached, going silent, further logs will be stored'));
+            this.emit('error', new Error('Max retries reached, going silent, further logs will be stored'));
         }
     }
 };
