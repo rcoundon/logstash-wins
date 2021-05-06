@@ -19,7 +19,7 @@ module.exports = class LogstashTCP extends Transport {
         this._maxRetries = opts.maxRetries || 1000;
         this._retryInterval = opts.retryInterval || 100;
         this._logQueue = [];
-        this._transform = defaultTransform;
+        this._transform = opts.transformer || defaultTransform;
         this._connected = false;
         this._silent = false;
         this._currentRetry = 0;
@@ -49,7 +49,7 @@ module.exports = class LogstashTCP extends Transport {
     }
 
     sendToLogstash(log){
-        let logEntry = defaultTransform(log, null);
+        let logEntry = this._transform(log, null);
         logEntry = logEntry.transform({
             level: log.level,
             message: log.message,
