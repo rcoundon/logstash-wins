@@ -1,5 +1,7 @@
+# I NO LONGER USE THE ELK STACK AND SO THIS REPO IS NO LONGER MAINTAINED, IF ANYONE WISHES TO TAKE IT OVER PLEASE RAISE AN ISSUE
 # Logstash TCP Wins
 Inspired by the winston-logstash module but as that isn't actively maintained and doesn't support 3.0.0 of Winston, I decided to create my own
+
 
 ## A Transport for Winston that allows for the sending of data to the Logstash TCP input plugin
 
